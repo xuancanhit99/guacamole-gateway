@@ -205,16 +205,17 @@ Xác thực runtime sau khi khởi động:
 docker compose logs --tail=200 gateway guacamole guacd postgres
 ```
 
-## Release packaging
+## Đóng gói bản phát hành
 
-The bundle is a Docker Compose product, not a standalone desktop executable.
-Use `Install-GuacamoleGateway.ps1` on Windows or `scripts/install.sh` on Linux/macOS;
-both validate Docker Compose and generate ignored random credentials before an
-optional start. `scripts/build-release.ps1` (or `.sh`) creates a ZIP, a
-`tar.gz`, and `SHA256SUMS.txt` under `dist/`. The archive deliberately excludes
-`.env`, `.env.e2e`, database backups, recordings, drive data, and Docker state.
+Bundle này là một sản phẩm Docker Compose, không phải ứng dụng desktop độc lập.
+Trên Windows dùng `Install-GuacamoleGateway.ps1`; trên Linux/macOS dùng
+`scripts/install.sh`. Cả hai đều xác minh Docker Compose, sinh credential ngẫu
+nhiên được Git bỏ qua và có thể khởi động dịch vụ. `scripts/build-release.ps1`
+(hoặc `.sh`) tạo ZIP, `tar.gz` và `SHA256SUMS.txt` trong `dist/`. Archive chủ ý
+loại bỏ `.env`, `.env.e2e`, database backup, recording, drive data và trạng thái
+Docker.
 
-Run the release gate locally:
+Chạy cổng kiểm soát release tại máy cục bộ:
 
 ```powershell
 ./scripts/release-audit.ps1
@@ -222,20 +223,18 @@ Run the release gate locally:
 Get-Content ./dist/SHA256SUMS.txt
 ```
 
-The bundled `.github/workflows/release.yml` repeats the Compose, license, and
-secret checks, builds both archive formats, verifies checksums, and publishes a
-GitHub Release only for an explicitly pushed `guacamole-gateway-v*` tag matching
-`VERSION`. It is intentionally packaged inside this product so it becomes an
-active workflow when this directory is extracted as the root of its own Git
-repository; it does not create a repository or publish anything by itself.
+`.github/workflows/release.yml` lặp lại việc kiểm tra Compose, giấy phép và
+secret; dựng cả hai định dạng archive, xác minh checksum và chỉ phát hành GitHub
+Release khi tag `guacamole-gateway-v*` khớp `VERSION` được push rõ ràng. Workflow
+nằm trong thư mục sản phẩm để hoạt động ngay khi thư mục trở thành gốc của repo
+Git riêng; bản thân nó không tự tạo repository.
 
-Why no single `.exe`? Guacamole is a multi-container server requiring Docker,
-PostgreSQL data, guacd, target-network access, and browser/WebSocket handling.
-An `.exe` wrapper would still need Docker Desktop and the images, complicate
-updates/signing and credential handling, and give a false impression that the
-gateway is a self-contained native client. A signed installer can be added later
-as a convenience wrapper around this audited bundle, but the Compose bundle is
-the authoritative deployment artifact.
+Vì sao không có một `.exe` duy nhất? Guacamole là máy chủ nhiều container, cần
+Docker, dữ liệu PostgreSQL, guacd, quyền truy cập mạng đích và xử lý
+browser/WebSocket. Wrapper `.exe` vẫn phải phụ thuộc Docker Desktop cùng các
+image, đồng thời làm việc cập nhật, ký mã và quản lý credential phức tạp hơn.
+Sau này có thể bổ sung installer đã ký như một lớp tiện ích quanh bundle đã
+được audit, nhưng Compose bundle vẫn là artifact triển khai có thẩm quyền.
 
 Nếu stack từng được khởi động với các giá trị bootstrap không hợp lệ, việc sửa
 `.env` sẽ không chạy lại quá trình khởi tạo vì PostgreSQL đã sở hữu một data
