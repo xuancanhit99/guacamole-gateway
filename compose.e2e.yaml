@@ -1,0 +1,41 @@
+services:
+  e2e-ssh:
+    profiles:
+      - e2e
+    image: lscr.io/linuxserver/openssh-server:version-10.3_p1-r1
+    hostname: e2e-ssh
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      USER_NAME: ${E2E_SSH_USER:-e2e}
+      USER_PASSWORD: ${E2E_SSH_PASSWORD:?Run scripts/e2e-setup.ps1 or scripts/e2e-setup.sh first}
+      PASSWORD_ACCESS: "true"
+      SUDO_ACCESS: "false"
+      LOG_STDOUT: "true"
+    volumes:
+      - e2e-ssh-config:/config
+      - ./e2e/motd:/etc/motd:ro
+    expose:
+      - "2222"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 2222"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  e2e-ssh-config:
+
+
